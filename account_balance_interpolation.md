@@ -15,13 +15,13 @@ Your output should match the following format:
 ```
 [
     {
-        "date": "05/10/23,
+        "date": "05/10/23",
         "balance": {
             "amount": 100,
         }
     },
     {
-        "date": "05/09/23,
+        "date": "05/09/23",
         "balance": {
             "amount": 100,
         }
