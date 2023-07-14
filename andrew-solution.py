@@ -27,7 +27,6 @@ def sort_transactions_by_date(data):
 	data['transactions'] = sorted(data['transactions'], key = lambda x: x['date'], reverse = True)
 	return data
 
-
 # For every transaction, compute previous balance by subtracting transaction amount
 # (assuming a positive transaction is a deposit)
 def compute_historical_data(data):
@@ -36,32 +35,25 @@ def compute_historical_data(data):
 	prev_date = datetime.strptime(data['transactions'][0]['date'], '%Y-%m-%d').strftime('%m/%d/%y')
 
 	# Add first data point
-	historical_data_point = { "date": prev_date, "balance": { "amount": prev_balance, } }
-	historical_balances.append(historical_data_point)
-	amount = round(prev_balance - float(data['transactions'][0]['amount']), 2)
-	prev_balance = amount
-
+	historical_balances.append({ "date": prev_date, "balance": { "amount": prev_balance, } })
+	
+	# Now process all transactions
+	prev_balance = round(prev_balance - float(data['transactions'][0]['amount']), 2)
+	
 	for i in range(1, len(data['transactions'])):
 
 		t = data['transactions'][i]
-
-		# Convert datetime object to new string format '06/26/23'
 		date = datetime.strptime(t['date'], '%Y-%m-%d')
 
 		# Round amount to cents (2 decimals)
 		amount = round(prev_balance - float(t['amount']), 2)
 
-		# While there are still transactions for the date we're keeping track of, keep determining end of day transactions
-		if date == prev_date:
-			prev_balance = amount
-		# Otherwise, we've found a demarcation between days
-		else:
-			
-			# We want to save the account balance for the day of this new date we're seeing			
+		# If we've found a demarcation between days
+		# We want to save the account balance for the day of this new date we're seeing			
+		if date != prev_date:			
 
 			# Save datapoint
-			historical_data_point = { "date": date.strftime('%m/%d/%y'), "balance": { "amount": prev_balance, } }
-			historical_balances.append(historical_data_point)
+			historical_balances.append({ "date": date.strftime('%m/%d/%y'), "balance": { "amount": prev_balance, } })
 			prev_date = date
 			
 			# For all days between our most recent datapoint and the one saved before that, add end-of-day balances
@@ -70,12 +62,11 @@ def compute_historical_data(data):
 				date = date + timedelta(days=1)
 				historical_balances.insert(n - 1, {"date": date.strftime('%m/%d/%y'), "balance": { "amount": prev_balance,}})
 
-			prev_balance = amount
+		prev_balance = amount
 
 	# Add last data point with final end of day balance we know
 	last_date = datetime.strptime(historical_balances[len(historical_balances) - 1]['date'], '%m/%d/%y')
-	historical_data_point = { "date": (last_date - timedelta(days=1)).strftime('%m/%d/%y'), "balance": { "amount": prev_balance, } }
-	historical_balances.append(historical_data_point)
+	historical_balances.append({ "date": (last_date - timedelta(days=1)).strftime('%m/%d/%y'), "balance": { "amount": prev_balance, } })
 	
 	return historical_balances
 
